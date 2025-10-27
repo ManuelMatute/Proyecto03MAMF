@@ -1,73 +1,33 @@
-# Welcome to your Lovable project
+# Proyecto 03 - Creación de una landing page
 
-## Project info
+## Información
 
 **URL**: https://lovable.dev/projects/4a5628c6-ed18-43cc-8055-2ce60de4dac8
 
-## How can I edit this code?
+1. Contexto
 
-There are several ways of editing your application.
+En ESPOL existe un intercambio presencial de libros gestionado de forma muy simple: una mesa y una persona encargada. La actividad es útil pero pequeña y con tiempos limitados. La información circula por boca a boca, a veces sin claridad sobre qué libros llegan, a qué hora conviene ir o cuáles son las reglas básicas. Eso provoca visitas en vano, pequeños embotellamientos en la mesa y expectativas desalineadas sobre el estado de los libros.
 
-**Use Lovable**
+2. Problema
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/4a5628c6-ed18-43cc-8055-2ce60de4dac8) and start prompting.
+Las y los estudiantes no saben con suficiente anticipación qué títulos podrían encontrar ni cuándo es mejor acercarse. Quienes llevan libros no tienen un canal sencillo para avisar qué traerán. La persona encargada debe validar estados y responder preguntas repetidas en el momento. No se generan grandes filas ni embotellamientos; la fricción principal está en la desalineación de expectativas, las visitas en vano y la comunicación dispersa que dificulta priorizar la atención de forma simple.
 
-Changes made via Lovable will be committed automatically to this repo.
+3. Efectos actuales sin solución
 
-**Use your preferred IDE**
+Visitas en vano por falta de visibilidad previa del catálogo.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Llegadas dispersas e impredecibles: periodos de inactividad y pequeños picos manejables, sin colas significativas.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+Reglas que se interpretan distinto y verificación de estado más lenta sin datos previos.
 
-Follow these steps:
+Dificultad para estimar materiales básicos del stand y organizar tiempos.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+Carga repetitiva para la persona a cargo al responder las mismas dudas una y otra vez.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+4. Objetivo
 
-# Step 3: Install the necessary dependencies.
-npm i
+Facilitar un intercambio ordenado, rápido y agradable, aumentando la probabilidad de que cada estudiante encuentre algo útil y que la persona del stand pueda atender sin fricción.
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+5. Solución propuesta: una landing page ultra simple
 
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/4a5628c6-ed18-43cc-8055-2ce60de4dac8) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+La landing actúa como un organizador previo y un megáfono del evento. Permite confirmar asistencia con selección de bloque horario para repartir el flujo, registrar uno o dos libros por persona con datos mínimos y mostrar un catálogo “disponible ahora” que guía a quienes están por ir. Además, comunica reglas claras, ubicación exacta y genera una confirmación que se puede guardar en el calendario y compartir por WhatsApp. Todo se hace en una sola pantalla, con lenguaje simple y sin sistemas complejos.
