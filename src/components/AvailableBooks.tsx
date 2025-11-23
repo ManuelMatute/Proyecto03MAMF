@@ -1,8 +1,16 @@
+// src/components/ui/AvailableBooks.tsx
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useBooks } from "@/hooks/use-books";
 
 export interface AvailableBook {
   id: string;
@@ -11,25 +19,30 @@ export interface AvailableBook {
   condition: string;
 }
 
-const INITIAL_BOOKS: AvailableBook[] = [
-  { id: "1", genre: "Literatura", title: "Cien Años de Soledad", condition: "Bueno" },
-  { id: "2", genre: "Ingeniería", title: "Estructuras de Datos en C++", condition: "Aceptable" },
-  { id: "3", genre: "Matemáticas", title: "Cálculo Diferencial e Integral", condition: "Bueno" },
-  { id: "4", genre: "Ciencias", title: "Física para Ingeniería", condition: "Nuevo" },
-  { id: "5", genre: "Literatura", title: "El Amor en los Tiempos del Cólera", condition: "Bueno" },
-  { id: "6", genre: "Economía", title: "Principios de Economía", condition: "Aceptable" },
-  { id: "7", genre: "Idiomas", title: "English Grammar in Use", condition: "Nuevo" },
-  { id: "8", genre: "Arte", title: "Historia del Arte Contemporáneo", condition: "Bueno" },
-];
-
 export const AvailableBooks = () => {
-  const [books, setBooks] = useState<AvailableBook[]>(INITIAL_BOOKS);
-  const [filteredBooks, setFilteredBooks] = useState<AvailableBook[]>(INITIAL_BOOKS);
+  const { books: remoteBooks, loading } = useBooks();
+
+  const [books, setBooks] = useState<AvailableBook[]>([]);
+  const [filteredBooks, setFilteredBooks] = useState<AvailableBook[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedGenre, setSelectedGenre] = useState("all");
-  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
-  const genres = ["all", ...Array.from(new Set(INITIAL_BOOKS.map((b) => b.genre)))];
+  // Cuando cambian los libros en Firestore, los mapeamos a tu estructura
+  useEffect(() => {
+    const mapped: AvailableBook[] = remoteBooks.map((b) => ({
+      id: b.id ?? "",
+      genre: b.genero,
+      title: b.titulo,
+      condition: b.estado,
+    }));
+
+    setBooks(mapped);
+    setLastUpdate(new Date());
+  }, [remoteBooks]);
+
+  // Géneros dinámicos a partir de lo que venga de Firebase
+  const genres = ["all", ...Array.from(new Set(books.map((b) => b.genre)))];
 
   useEffect(() => {
     filterBooks();
@@ -51,14 +64,13 @@ export const AvailableBooks = () => {
     setFilteredBooks(filtered);
   };
 
+  // Ahora "Actualizar" solo refresca la hora (los datos vienen en tiempo real de Firestore)
   const handleRefresh = () => {
-    // Simular actualización mezclando el array
-    const shuffled = [...INITIAL_BOOKS].sort(() => Math.random() - 0.5);
-    setBooks(shuffled);
     setLastUpdate(new Date());
   };
 
   const getMinutesAgo = () => {
+    if (!lastUpdate) return "—";
     const now = new Date();
     const diff = Math.floor((now.getTime() - lastUpdate.getTime()) / 60000);
     return diff === 0 ? "hace un momento" : `hace ${diff} min`;
@@ -104,11 +116,13 @@ export const AvailableBooks = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos los géneros</SelectItem>
-                {genres.filter((g) => g !== "all").map((genre) => (
-                  <SelectItem key={genre} value={genre}>
-                    {genre}
-                  </SelectItem>
-                ))}
+                {genres
+                  .filter((g) => g !== "all")
+                  .map((genre) => (
+                    <SelectItem key={genre} value={genre}>
+                      {genre}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>
@@ -121,9 +135,15 @@ export const AvailableBooks = () => {
           Última actualización: {getMinutesAgo()}
         </p>
 
-        {filteredBooks.length === 0 ? (
+        {loading ? (
           <div className="py-12 text-center">
-            <p className="text-muted-foreground">No se encontraron libros con estos criterios.</p>
+            <p className="text-muted-foreground">Cargando libros...</p>
+          </div>
+        ) : filteredBooks.length === 0 ? (
+          <div className="py-12 text-center">
+            <p className="text-muted-foreground">
+              No se encontraron libros con estos criterios.
+            </p>
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -136,7 +156,9 @@ export const AvailableBooks = () => {
                   <Badge variant="outline" className="text-xs">
                     {book.genre}
                   </Badge>
-                  <Badge className={`text-xs ${getConditionColor(book.condition)}`}>
+                  <Badge
+                    className={`text-xs ${getConditionColor(book.condition)}`}
+                  >
                     {book.condition}
                   </Badge>
                 </div>

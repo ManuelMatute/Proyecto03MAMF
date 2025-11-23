@@ -2,8 +2,17 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
+
+//  Importamos la lógica de Firebase
+import { createBook, EstadoLibro } from "@/lib/books";
 
 export interface Book {
   genre: string;
@@ -33,6 +42,7 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitting, setSubmitting] = useState(false);
 
   const genres = [
     "Literatura",
@@ -47,12 +57,7 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
 
   const conditions = ["Nuevo", "Bueno", "Aceptable"];
 
-  const timeSlots = [
-    "10:00–10:20",
-    "10:20–10:40",
-    "10:40–11:00",
-    "11:00–11:20",
-  ];
+  const timeSlots = ["10:00–10:20", "10:20–10:40", "10:40–11:00", "11:00–11:20"];
 
   const addBook = () => {
     if (formData.books.length < 2) {
@@ -83,25 +88,59 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
     if (!formData.email.trim()) newErrors.email = "El correo es obligatorio";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
       newErrors.email = "Formato de correo inválido";
-    if (!formData.studentId.trim()) newErrors.studentId = "El código es obligatorio";
+    if (!formData.studentId.trim())
+      newErrors.studentId = "El código es obligatorio";
     if (!formData.timeSlot) newErrors.timeSlot = "Selecciona un horario";
 
     formData.books.forEach((book, index) => {
       if (!book.genre) newErrors[`book${index}genre`] = "Selecciona un género";
-      if (!book.title.trim()) newErrors[`book${index}title`] = "El título es obligatorio";
-      if (!book.condition) newErrors[`book${index}condition`] = "Selecciona un estado";
+      if (!book.title.trim())
+        newErrors[`book${index}title`] = "El título es obligatorio";
+      if (!book.condition)
+        newErrors[`book${index}condition`] = "Selecciona un estado";
     });
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  //  Ahora el submit guarda en Firebase
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validate()) {
-      onSubmit(formData);
-    } else {
+
+    if (!validate()) {
       toast.error("Por favor, completa todos los campos obligatorios");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      // Guardar cada libro (si hay) en Firestore
+      for (const book of formData.books) {
+        if (book.genre && book.title && book.condition) {
+          await createBook({
+            genero: book.genre,
+            titulo: book.title,
+            estado: book.condition as EstadoLibro,
+            estudianteNombre: formData.name,
+            estudianteCorreo: formData.email,
+            estudianteCodigo: formData.studentId,
+            bloqueHorario: formData.timeSlot,
+          });
+        }
+      }
+
+      // Mantener tu flujo actual (modal, etc.)
+      onSubmit(formData);
+
+      toast.success("Registro guardado correctamente 🎉");
+      // Si quieres limpiar libros después:
+      // setFormData({ ...formData, books: [] });
+    } catch (error) {
+      console.error("Error al registrar libros:", error);
+      toast.error("Ocurrió un error al registrar los libros. Intenta de nuevo.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -112,10 +151,14 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
           Regístrate y Separa tu Cupo
         </h2>
         <p className="mb-8 text-center text-muted-foreground">
-          Completa el formulario para confirmar tu asistencia y los libros que llevarás.
+          Completa el formulario para confirmar tu asistencia y los libros que
+          llevarás.
         </p>
 
-        <form onSubmit={handleSubmit} className="rounded-2xl bg-card p-6 shadow-lg md:p-8">
+        <form
+          onSubmit={handleSubmit}
+          className="rounded-2xl bg-card p-6 shadow-lg md:p-8"
+        >
           <div className="space-y-6">
             {/* Nombre Completo */}
             <div>
@@ -124,11 +167,15 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
                 id="name"
                 type="text"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 className={errors.name ? "border-destructive" : ""}
                 placeholder="Ej: Juan Pérez"
               />
-              {errors.name && <p className="mt-1 text-sm text-destructive">{errors.name}</p>}
+              {errors.name && (
+                <p className="mt-1 text-sm text-destructive">{errors.name}</p>
+              )}
             </div>
 
             {/* Correo Electrónico */}
@@ -138,11 +185,15 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
                 id="email"
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
                 className={errors.email ? "border-destructive" : ""}
                 placeholder="ejemplo@espol.edu.ec"
               />
-              {errors.email && <p className="mt-1 text-sm text-destructive">{errors.email}</p>}
+              {errors.email && (
+                <p className="mt-1 text-sm text-destructive">{errors.email}</p>
+              )}
             </div>
 
             {/* Código de Estudiante */}
@@ -152,21 +203,34 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
                 id="studentId"
                 type="text"
                 value={formData.studentId}
-                onChange={(e) => setFormData({ ...formData, studentId: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, studentId: e.target.value })
+                }
                 className={errors.studentId ? "border-destructive" : ""}
                 placeholder="Ej: 202012345"
               />
               <p className="mt-1 text-xs text-muted-foreground">
                 Tu código solo lo ve el encargado; no se mostrará públicamente.
               </p>
-              {errors.studentId && <p className="mt-1 text-sm text-destructive">{errors.studentId}</p>}
+              {errors.studentId && (
+                <p className="mt-1 text-sm text-destructive">
+                  {errors.studentId}
+                </p>
+              )}
             </div>
 
             {/* Bloque Horario */}
             <div>
               <Label htmlFor="timeSlot">Bloque Horario *</Label>
-              <Select value={formData.timeSlot} onValueChange={(value) => setFormData({ ...formData, timeSlot: value })}>
-                <SelectTrigger className={errors.timeSlot ? "border-destructive" : ""}>
+              <Select
+                value={formData.timeSlot}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, timeSlot: value })
+                }
+              >
+                <SelectTrigger
+                  className={errors.timeSlot ? "border-destructive" : ""}
+                >
                   <SelectValue placeholder="Selecciona un horario" />
                 </SelectTrigger>
                 <SelectContent>
@@ -177,7 +241,11 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
                   ))}
                 </SelectContent>
               </Select>
-              {errors.timeSlot && <p className="mt-1 text-sm text-destructive">{errors.timeSlot}</p>}
+              {errors.timeSlot && (
+                <p className="mt-1 text-sm text-destructive">
+                  {errors.timeSlot}
+                </p>
+              )}
             </div>
 
             {/* Registrar Libros */}
@@ -187,9 +255,14 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
               </h3>
 
               {formData.books.map((book, index) => (
-                <div key={index} className="mb-6 rounded-lg border bg-accent/50 p-4">
+                <div
+                  key={index}
+                  className="mb-6 rounded-lg border bg-accent/50 p-4"
+                >
                   <div className="mb-3 flex items-center justify-between">
-                    <h4 className="font-medium text-accent-foreground">Libro {index + 1}</h4>
+                    <h4 className="font-medium text-accent-foreground">
+                      Libro {index + 1}
+                    </h4>
                     <Button
                       type="button"
                       variant="ghost"
@@ -206,9 +279,15 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
                       <Label htmlFor={`genre${index}`}>Género *</Label>
                       <Select
                         value={book.genre}
-                        onValueChange={(value) => updateBook(index, "genre", value)}
+                        onValueChange={(value) =>
+                          updateBook(index, "genre", value)
+                        }
                       >
-                        <SelectTrigger className={errors[`book${index}genre`] ? "border-destructive" : ""}>
+                        <SelectTrigger
+                          className={
+                            errors[`book${index}genre`] ? "border-destructive" : ""
+                          }
+                        >
                           <SelectValue placeholder="Selecciona un género" />
                         </SelectTrigger>
                         <SelectContent>
@@ -220,7 +299,9 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
                         </SelectContent>
                       </Select>
                       {errors[`book${index}genre`] && (
-                        <p className="mt-1 text-sm text-destructive">{errors[`book${index}genre`]}</p>
+                        <p className="mt-1 text-sm text-destructive">
+                          {errors[`book${index}genre`]}
+                        </p>
                       )}
                     </div>
 
@@ -230,12 +311,18 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
                         id={`title${index}`}
                         type="text"
                         value={book.title}
-                        onChange={(e) => updateBook(index, "title", e.target.value)}
-                        className={errors[`book${index}title`] ? "border-destructive" : ""}
+                        onChange={(e) =>
+                          updateBook(index, "title", e.target.value)
+                        }
+                        className={
+                          errors[`book${index}title`] ? "border-destructive" : ""
+                        }
                         placeholder="Nombre del libro"
                       />
                       {errors[`book${index}title`] && (
-                        <p className="mt-1 text-sm text-destructive">{errors[`book${index}title`]}</p>
+                        <p className="mt-1 text-sm text-destructive">
+                          {errors[`book${index}title`]}
+                        </p>
                       )}
                     </div>
 
@@ -243,9 +330,17 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
                       <Label htmlFor={`condition${index}`}>Estado *</Label>
                       <Select
                         value={book.condition}
-                        onValueChange={(value) => updateBook(index, "condition", value)}
+                        onValueChange={(value) =>
+                          updateBook(index, "condition", value)
+                        }
                       >
-                        <SelectTrigger className={errors[`book${index}condition`] ? "border-destructive" : ""}>
+                        <SelectTrigger
+                          className={
+                            errors[`book${index}condition`]
+                              ? "border-destructive"
+                              : ""
+                          }
+                        >
                           <SelectValue placeholder="Selecciona el estado" />
                         </SelectTrigger>
                         <SelectContent>
@@ -256,9 +351,13 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
                           ))}
                         </SelectContent>
                       </Select>
-                      <p className="mt-1 text-xs text-muted-foreground">Se confirmará en el stand.</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Se confirmará en el stand.
+                      </p>
                       {errors[`book${index}condition`] && (
-                        <p className="mt-1 text-sm text-destructive">{errors[`book${index}condition`]}</p>
+                        <p className="mt-1 text-sm text-destructive">
+                          {errors[`book${index}condition`]}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -277,8 +376,13 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
               )}
             </div>
 
-            <Button type="submit" className="w-full bg-gradient-primary text-lg font-semibold" size="lg">
-              Generar Invitación y Registrar
+            <Button
+              type="submit"
+              className="w-full bg-gradient-primary text-lg font-semibold"
+              size="lg"
+              disabled={submitting}
+            >
+              {submitting ? "Registrando..." : "Generar Invitación y Registrar"}
             </Button>
           </div>
         </form>
