@@ -10,8 +10,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-
-//  Importamos la lógica de Firebase
 import { createBook, EstadoLibro } from "@/lib/books";
 
 export interface Book {
@@ -104,7 +102,6 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  //  Ahora el submit guarda en Firebase
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -115,7 +112,6 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
 
     setSubmitting(true);
     try {
-      // Guardar cada libro (si hay) en Firestore
       for (const book of formData.books) {
         if (book.genre && book.title && book.condition) {
           await createBook({
@@ -126,19 +122,18 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
             estudianteCorreo: formData.email,
             estudianteCodigo: formData.studentId,
             bloqueHorario: formData.timeSlot,
+            aprobado: false, // se aprobará luego en recepción
           });
         }
       }
 
-      // Mantener tu flujo actual (modal, etc.)
       onSubmit(formData);
-
-      toast.success("Registro guardado correctamente 🎉");
-      // Si quieres limpiar libros después:
-      // setFormData({ ...formData, books: [] });
+      toast.success("Registro guardado correctamente ");
     } catch (error) {
       console.error("Error al registrar libros:", error);
-      toast.error("Ocurrió un error al registrar los libros. Intenta de nuevo.");
+      toast.error(
+        "Ocurrió un error al registrar los libros. Intenta de nuevo."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -148,11 +143,12 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
     <section className="py-16 md:py-20 bg-muted" id="registro">
       <div className="container mx-auto px-4 max-w-3xl">
         <h2 className="mb-3 text-center text-3xl font-bold md:text-4xl text-foreground">
-          Regístrate y Separa tu Cupo
+          Regístrate y Pre-registra tus Libros
         </h2>
         <p className="mb-8 text-center text-muted-foreground">
-          Completa el formulario para confirmar tu asistencia y los libros que
-          llevarás.
+          Completa el formulario para confirmar tu asistencia y pre-registrar
+          los libros que llevarás. La disponibilidad se confirma el día del
+          evento en la mesa.
         </p>
 
         <form
@@ -160,7 +156,6 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
           className="rounded-2xl bg-card p-6 shadow-lg md:p-8"
         >
           <div className="space-y-6">
-            {/* Nombre Completo */}
             <div>
               <Label htmlFor="name">Nombre y Apellido *</Label>
               <Input
@@ -178,7 +173,6 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
               )}
             </div>
 
-            {/* Correo Electrónico */}
             <div>
               <Label htmlFor="email">Correo ESPOL *</Label>
               <Input
@@ -196,9 +190,10 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
               )}
             </div>
 
-            {/* Código de Estudiante */}
             <div>
-              <Label htmlFor="studentId">Código de Estudiante / Matrícula *</Label>
+              <Label htmlFor="studentId">
+                Código de Estudiante / Matrícula *
+              </Label>
               <Input
                 id="studentId"
                 type="text"
@@ -210,7 +205,8 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
                 placeholder="Ej: 202012345"
               />
               <p className="mt-1 text-xs text-muted-foreground">
-                Tu código solo lo ve el encargado; no se mostrará públicamente.
+                Tu código solo lo ve el encargado; no se mostrará
+                públicamente.
               </p>
               {errors.studentId && (
                 <p className="mt-1 text-sm text-destructive">
@@ -219,7 +215,6 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
               )}
             </div>
 
-            {/* Bloque Horario */}
             <div>
               <Label htmlFor="timeSlot">Bloque Horario *</Label>
               <Select
@@ -248,11 +243,14 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
               )}
             </div>
 
-            {/* Registrar Libros */}
             <div className="border-t pt-6">
-              <h3 className="mb-4 text-lg font-semibold text-foreground">
-                Registrar libros (opcional - máximo 2)
+              <h3 className="mb-1 text-lg font-semibold text-foreground">
+                Pre-registrar libros (opcional - máximo 2)
               </h3>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Este registro es preliminar: los libros se revisan en la mesa y
+                solo los aprobados entran al intercambio.
+              </p>
 
               {formData.books.map((book, index) => (
                 <div
@@ -285,7 +283,9 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
                       >
                         <SelectTrigger
                           className={
-                            errors[`book${index}genre`] ? "border-destructive" : ""
+                            errors[`book${index}genre`]
+                              ? "border-destructive"
+                              : ""
                           }
                         >
                           <SelectValue placeholder="Selecciona un género" />
@@ -315,7 +315,9 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
                           updateBook(index, "title", e.target.value)
                         }
                         className={
-                          errors[`book${index}title`] ? "border-destructive" : ""
+                          errors[`book${index}title`]
+                            ? "border-destructive"
+                            : ""
                         }
                         placeholder="Nombre del libro"
                       />

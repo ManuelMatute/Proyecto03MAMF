@@ -5,6 +5,8 @@ export const Rules = () => {
     "Libros limpios y legibles.",
     "Respeta tu bloque; si llegas tarde, pasas al final si hay espacio.",
     "Trato respetuoso en la mesa.",
+    "Los libros pre-registrados en la web deben entregarse en la mesa para ser revisados antes de entrar al intercambio.",
+    "El equipo puede rechazar libros que no cumplan las condiciones (mal estado, contenido inapropiado, etc.).",
   ];
 
   return (

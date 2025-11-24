@@ -8,7 +8,12 @@ export function useBooks() {
 
   useEffect(() => {
     const unsubscribe = subscribeBooks((data) => {
-      setBooks(data);
+      setBooks(
+        data.map((b) => ({
+          ...b,
+          aprobado: b.aprobado ?? false,
+        }))
+      );
       setLoading(false);
     });
 

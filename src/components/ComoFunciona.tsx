@@ -7,13 +7,21 @@ export const ComoFunciona = () => {
     },
     {
       number: "2",
-      title: "Trae tu Libro",
-      description: "(Opcional) Registra uno o dos libros con género, título y estado.",
+      title: "Pre-registra tus libros",
+      description:
+        "Añade uno o dos libros con género, título y estado. Esto nos ayuda a organizar el intercambio.",
     },
     {
       number: "3",
+      title: "Entrega en la mesa",
+      description:
+        "Lleva tus libros en tu bloque horario. El equipo revisa que cumplan las reglas.",
+    },
+    {
+      number: "4",
       title: "Intercambia",
-      description: "Llega 5 minutos antes. El estado se confirma en el stand.",
+      description:
+        "Una vez aprobados, tus libros se suman al stand y puedes elegir nuevos libros.",
     },
   ];
 
@@ -23,13 +31,15 @@ export const ComoFunciona = () => {
         <h2 className="mb-12 text-center text-3xl font-bold md:text-4xl text-foreground">
           Cómo Funciona
         </h2>
-        <div className="grid gap-8 md:grid-cols-3">
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           {steps.map((step) => (
             <div key={step.number} className="text-center">
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-primary text-2xl font-bold text-white shadow-md">
                 {step.number}
               </div>
-              <h3 className="mb-2 text-xl font-semibold text-foreground">{step.title}</h3>
+              <h3 className="mb-2 text-xl font-semibold text-foreground">
+                {step.title}
+              </h3>
               <p className="text-muted-foreground">{step.description}</p>
             </div>
           ))}
@@ -38,3 +48,4 @@ export const ComoFunciona = () => {
     </section>
   );
 };
+

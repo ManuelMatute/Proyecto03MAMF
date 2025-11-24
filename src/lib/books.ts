@@ -6,6 +6,9 @@ import {
   orderBy,
   query,
   serverTimestamp,
+  doc,
+  updateDoc,
+  deleteDoc,
 } from "firebase/firestore";
 import { db } from "./firebase";
 
@@ -20,6 +23,7 @@ export interface Book {
   estudianteCorreo: string;
   estudianteCodigo: string;
   bloqueHorario: string;
+  aprobado?: boolean;
   createdAt?: any;
 }
 
@@ -30,17 +34,28 @@ export async function createBook(
 ): Promise<void> {
   await addDoc(booksCol, {
     ...data,
+    aprobado: data.aprobado ?? false,
     createdAt: serverTimestamp(),
   });
+}
+
+export async function approveBook(id: string): Promise<void> {
+  const ref = doc(booksCol, id);
+  await updateDoc(ref, { aprobado: true });
+}
+
+export async function deleteBook(id: string): Promise<void> {
+  const ref = doc(booksCol, id);
+  await deleteDoc(ref);
 }
 
 export function subscribeBooks(callback: (books: Book[]) => void) {
   const q = query(booksCol, orderBy("createdAt", "desc"));
 
   return onSnapshot(q, (snapshot) => {
-    const books: Book[] = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...(doc.data() as Omit<Book, "id">),
+    const books: Book[] = snapshot.docs.map((docSnap) => ({
+      id: docSnap.id,
+      ...(docSnap.data() as Omit<Book, "id">),
     }));
     callback(books);
   });

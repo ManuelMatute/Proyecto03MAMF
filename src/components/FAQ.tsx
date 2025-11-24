@@ -1,22 +1,37 @@
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export const FAQ = () => {
   const faqs = [
     {
       question: "¿Puedo vender libros?",
-      answer: "No, este es un evento de intercambio, no de venta. El objetivo es dar una segunda vida a los libros mediante el trueque.",
+      answer:
+        "No, este es un evento de intercambio, no de venta. El objetivo es dar una segunda vida a los libros mediante el trueque.",
     },
     {
-      question: "¿Puedo ir sin registrar libros?",
-      answer: "Sí, puedes asistir sin registrar libros previamente. Sin embargo, registrarlos ayuda a ordenar mejor el evento y facilita el proceso de intercambio.",
+      question: "¿Puedo ir sin pre-registrar libros?",
+      answer:
+        "Sí, puedes asistir sin pre-registrar libros en la web. Sin embargo, el pre-registro nos ayuda a organizar mejor los bloques y a saber qué tipo de libros llegarán.",
     },
     {
-      question: "¿Qué pasa si no encuentro nada que me interese?",
-      answer: "Puedes dejar tu 'lista de deseos' con el encargado del stand. Si alguien trae un libro que buscas, te contactaremos.",
+      question:
+        "¿Mi libro aparece automáticamente en la lista de 'Disponible ahora'?",
+      answer:
+        "No. Primero debes entregar el libro en la mesa el día del evento. El equipo revisa su estado y solo los libros aprobados se muestran como 'Disponibles' en la web.",
+    },
+    {
+      question: "¿Para qué sirve pre-registrar mis libros?",
+      answer:
+        "El pre-registro permite estimar cuántos libros llegarán por bloque, reducir tiempos de espera y mostrar con anticipación el tipo de títulos que podrían estar en el intercambio.",
     },
     {
       question: "¿Qué tipo de libros puedo llevar?",
-      answer: "Cualquier libro en buenas condiciones: académicos, literatura, técnicos, idiomas, etc. Deben estar limpios, legibles y sin fotocopias.",
+      answer:
+        "Cualquier libro en buenas condiciones: académicos, literatura, técnicos, idiomas, etc. Deben estar limpios, legibles y sin fotocopias.",
     },
   ];
 
