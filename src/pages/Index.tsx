@@ -7,6 +7,7 @@ import { LocationInfo } from "@/components/LocationInfo";
 import { Rules } from "@/components/Rules";
 import { FAQ } from "@/components/FAQ";
 import { ConfirmationModal } from "@/components/ConfirmationModal";
+import { InterestStats } from "@/components/InterestStats";
 
 const Index = () => {
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -24,11 +25,15 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
-      <Hero onConfirmarClick={scrollToRegistro} onRegistrarClick={scrollToRegistro} />
+      <Hero
+        onConfirmarClick={scrollToRegistro}
+        onRegistrarClick={scrollToRegistro}
+      />
       <ComoFunciona />
       <div ref={registroRef}>
         <RegistrationForm onSubmit={handleFormSubmit} />
       </div>
+      <InterestStats />
       <AvailableBooks />
       <LocationInfo />
       <Rules />
@@ -45,7 +50,8 @@ const Index = () => {
       <footer className="bg-primary py-8 text-center text-primary-foreground">
         <div className="container mx-auto px-4">
           <p className="text-sm">
-            Intercambio de Libros ESPOL 2025 • Organizado por estudiantes para estudiantes
+            Intercambio de Libros ESPOL 2025 • Organizado por estudiantes para
+            estudiantes
           </p>
         </div>
       </footer>

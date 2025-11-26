@@ -1,12 +1,12 @@
 export const Rules = () => {
   const rules = [
-    "Trueque 1 libro ≈ 1 libro; ediciones muy recientes pueden valer 2.",
+    "Trueque 1 libro por un 1 libro con características similares.",
     "Sin fotocopias ni piratería.",
     "Libros limpios y legibles.",
-    "Respeta tu bloque; si llegas tarde, pasas al final si hay espacio.",
+    "Respeta tu bloque. Si llegas tarde, pasas al final si hay espacio.",
     "Trato respetuoso en la mesa.",
-    "Los libros pre-registrados en la web deben entregarse en la mesa para ser revisados antes de entrar al intercambio.",
-    "El equipo puede rechazar libros que no cumplan las condiciones (mal estado, contenido inapropiado, etc.).",
+    "Los libros deben entregarse en la mesa para ser revisados antes de entrar al intercambio.",
+    "El equipo puede rechazar libros que no cumplan las condiciones (mal estado, contenido inapropiado, entre otros.).",
   ];
 
   return (

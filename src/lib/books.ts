@@ -8,7 +8,6 @@ import {
   serverTimestamp,
   doc,
   updateDoc,
-  deleteDoc,
 } from "firebase/firestore";
 import { db } from "./firebase";
 
@@ -23,7 +22,7 @@ export interface Book {
   estudianteCorreo: string;
   estudianteCodigo: string;
   bloqueHorario: string;
-  aprobado?: boolean;
+  disponible?: boolean;
   createdAt?: any;
 }
 
@@ -34,19 +33,14 @@ export async function createBook(
 ): Promise<void> {
   await addDoc(booksCol, {
     ...data,
-    aprobado: data.aprobado ?? false,
+    disponible: data.disponible ?? true,
     createdAt: serverTimestamp(),
   });
 }
 
-export async function approveBook(id: string): Promise<void> {
+export async function markBookAsNotAvailable(id: string): Promise<void> {
   const ref = doc(booksCol, id);
-  await updateDoc(ref, { aprobado: true });
-}
-
-export async function deleteBook(id: string): Promise<void> {
-  const ref = doc(booksCol, id);
-  await deleteDoc(ref);
+  await updateDoc(ref, { disponible: false });
 }
 
 export function subscribeBooks(callback: (books: Book[]) => void) {

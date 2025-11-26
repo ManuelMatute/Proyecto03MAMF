@@ -1,3 +1,4 @@
+// src/components/ComoFunciona.tsx
 export const ComoFunciona = () => {
   const steps = [
     {
@@ -7,21 +8,15 @@ export const ComoFunciona = () => {
     },
     {
       number: "2",
-      title: "Pre-registra tus libros",
+      title: "Cuéntanos qué buscas",
       description:
-        "Añade uno o dos libros con género, título y estado. Esto nos ayuda a organizar el intercambio.",
+        "Registra uno o dos libros que te gustaría encontrar, por género, título y estado.",
     },
     {
       number: "3",
-      title: "Entrega en la mesa",
-      description:
-        "Lleva tus libros en tu bloque horario. El equipo revisa que cumplan las reglas.",
-    },
-    {
-      number: "4",
       title: "Intercambia",
       description:
-        "Una vez aprobados, tus libros se suman al stand y puedes elegir nuevos libros.",
+        "Llega 5 minutos antes. Los libros se revisan en la mesa y se van marcando como disponibles o intercambiados.",
     },
   ];
 
@@ -31,7 +26,7 @@ export const ComoFunciona = () => {
         <h2 className="mb-12 text-center text-3xl font-bold md:text-4xl text-foreground">
           Cómo Funciona
         </h2>
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-8 md:grid-cols-3">
           {steps.map((step) => (
             <div key={step.number} className="text-center">
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-primary text-2xl font-bold text-white shadow-md">
@@ -48,4 +43,3 @@ export const ComoFunciona = () => {
     </section>
   );
 };
-

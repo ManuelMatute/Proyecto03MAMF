@@ -11,7 +11,7 @@ export function useBooks() {
       setBooks(
         data.map((b) => ({
           ...b,
-          aprobado: b.aprobado ?? false,
+          disponible: b.disponible ?? true,
         }))
       );
       setLoading(false);

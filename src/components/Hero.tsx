@@ -1,5 +1,6 @@
+// src/components/Hero.tsx
 import { Button } from "@/components/ui/button";
-import heroEspol from "@/assets/hero-espol.jpg";
+import campusImage from "@/assets/hero-espol.jpg";
 
 interface HeroProps {
   onConfirmarClick: () => void;
@@ -19,8 +20,8 @@ export const Hero = ({ onConfirmarClick, onRegistrarClick }: HeroProps) => {
               Intercambia tus libros en ESPOL y dales una segunda vida
             </h1>
             <p className="mb-8 text-lg text-white/90 md:text-xl">
-              Regístrate, pre-registra tus libros y el día del evento los
-              validamos en la mesa de intercambio.
+              Elige tu hora, trae tus libros y descubre otros. 
+              Registra tus intereses y ayuda a organizar mejor el trueque.
             </p>
             <div className="flex flex-col gap-4 sm:flex-row">
               <Button
@@ -36,19 +37,15 @@ export const Hero = ({ onConfirmarClick, onRegistrarClick }: HeroProps) => {
                 variant="outline"
                 className="border-2 border-white bg-transparent text-white hover:bg-white hover:text-primary font-semibold w-full sm:w-auto"
               >
-                Pre-registrar mis libros
+                Registrar mis intereses
               </Button>
             </div>
-            <p className="mt-3 text-sm text-white/80">
-              Tus libros solo se muestran como disponibles después de ser
-              revisados y aprobados en la mesa.
-            </p>
           </div>
           <div className="order-first md:order-last">
             <img
-              src={heroEspol}
-              alt="Campus ESPOL durante el intercambio de libros"
-              className="rounded-2xl shadow-2xl w-full h-auto object-cover"
+              src={campusImage}
+              alt="Campus ESPOL"
+              className="rounded-2xl shadow-2xl w-full h-auto"
             />
           </div>
         </div>

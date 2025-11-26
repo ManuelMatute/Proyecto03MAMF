@@ -10,11 +10,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { createBook, EstadoLibro } from "@/lib/books";
+import { EstadoLibro, Book as StockBook } from "@/lib/books";
+import { createInterest } from "@/lib/interests";
+import { useBooks } from "@/hooks/use-books";
 
-export interface Book {
-  genre: string;
-  title: string;
+export interface InterestBook {
+  bookId: string;
   condition: string;
 }
 
@@ -23,7 +24,7 @@ export interface FormData {
   email: string;
   studentId: string;
   timeSlot: string;
-  books: Book[];
+  books: InterestBook[];
 }
 
 interface RegistrationFormProps {
@@ -42,16 +43,10 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
 
-  const genres = [
-    "Literatura",
-    "Ingeniería",
-    "Matemáticas",
-    "Ciencias",
-    "Economía",
-    "Idiomas",
-    "Arte",
-    "Otros",
-  ];
+  const { books: stockBooks, loading: loadingStock } = useBooks();
+  const availableBooks: StockBook[] = stockBooks.filter(
+    (b) => b.disponible !== false
+  );
 
   const conditions = ["Nuevo", "Bueno", "Aceptable"];
 
@@ -61,7 +56,7 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
     if (formData.books.length < 2) {
       setFormData({
         ...formData,
-        books: [...formData.books, { genre: "", title: "", condition: "" }],
+        books: [...formData.books, { bookId: "", condition: "" }],
       });
     }
   };
@@ -73,7 +68,11 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
     });
   };
 
-  const updateBook = (index: number, field: keyof Book, value: string) => {
+  const updateBook = (
+    index: number,
+    field: keyof InterestBook,
+    value: string
+  ) => {
     const newBooks = [...formData.books];
     newBooks[index] = { ...newBooks[index], [field]: value };
     setFormData({ ...formData, books: newBooks });
@@ -91,11 +90,10 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
     if (!formData.timeSlot) newErrors.timeSlot = "Selecciona un horario";
 
     formData.books.forEach((book, index) => {
-      if (!book.genre) newErrors[`book${index}genre`] = "Selecciona un género";
-      if (!book.title.trim())
-        newErrors[`book${index}title`] = "El título es obligatorio";
+      if (!book.bookId)
+        newErrors[`book${index}bookId`] = "Selecciona un libro del catálogo";
       if (!book.condition)
-        newErrors[`book${index}condition`] = "Selecciona un estado";
+        newErrors[`book${index}condition`] = "Selecciona un estado preferido";
     });
 
     setErrors(newErrors);
@@ -110,29 +108,39 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
       return;
     }
 
+    if (availableBooks.length === 0) {
+      toast.error(
+        "No hay libros disponibles en el catálogo para registrar intereses."
+      );
+      return;
+    }
+
     setSubmitting(true);
     try {
       for (const book of formData.books) {
-        if (book.genre && book.title && book.condition) {
-          await createBook({
-            genero: book.genre,
-            titulo: book.title,
-            estado: book.condition as EstadoLibro,
-            estudianteNombre: formData.name,
-            estudianteCorreo: formData.email,
-            estudianteCodigo: formData.studentId,
-            bloqueHorario: formData.timeSlot,
-            aprobado: false, // se aprobará luego en recepción
-          });
-        }
+        if (!book.bookId || !book.condition) continue;
+
+        const baseBook = availableBooks.find((b) => b.id === book.bookId);
+        if (!baseBook) continue;
+
+        await createInterest({
+          bookId: baseBook.id,
+          genero: baseBook.genero,
+          titulo: baseBook.titulo,
+          estadoDeseado: book.condition as EstadoLibro,
+          estudianteNombre: formData.name,
+          estudianteCorreo: formData.email,
+          estudianteCodigo: formData.studentId,
+          bloqueHorario: formData.timeSlot,
+        });
       }
 
       onSubmit(formData);
-      toast.success("Registro guardado correctamente ");
+      toast.success("Registro de interés guardado correctamente");
     } catch (error) {
-      console.error("Error al registrar libros:", error);
+      console.error("Error al registrar intereses:", error);
       toast.error(
-        "Ocurrió un error al registrar los libros. Intenta de nuevo."
+        "Ocurrió un error al registrar tus intereses. Intenta de nuevo."
       );
     } finally {
       setSubmitting(false);
@@ -143,19 +151,24 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
     <section className="py-16 md:py-20 bg-muted" id="registro">
       <div className="container mx-auto px-4 max-w-3xl">
         <h2 className="mb-3 text-center text-3xl font-bold md:text-4xl text-foreground">
-          Regístrate y Pre-registra tus Libros
+          Regístrate y cuéntanos qué libro del catálogo te interesa
         </h2>
-        <p className="mb-8 text-center text-muted-foreground">
-          Completa el formulario para confirmar tu asistencia y pre-registrar
-          los libros que llevarás. La disponibilidad se confirma el día del
-          evento en la mesa.
+        <p className="mb-4 text-center text-muted-foreground">
+          Confirma tu asistencia y selecciona, del catálogo actual, los libros
+          que más te gustaría intercambiar.
         </p>
+        {loadingStock && (
+          <p className="mb-4 text-center text-xs text-muted-foreground">
+            Cargando catálogo de libros disponibles…
+          </p>
+        )}
 
         <form
           onSubmit={handleSubmit}
           className="rounded-2xl bg-card p-6 shadow-lg md:p-8"
         >
           <div className="space-y-6">
+            {/* datos personales */}
             <div>
               <Label htmlFor="name">Nombre y Apellido *</Label>
               <Input
@@ -192,7 +205,7 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
 
             <div>
               <Label htmlFor="studentId">
-                Código de Estudiante / Matrícula *
+                Matrícula *
               </Label>
               <Input
                 id="studentId"
@@ -205,8 +218,7 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
                 placeholder="Ej: 202012345"
               />
               <p className="mt-1 text-xs text-muted-foreground">
-                Tu código solo lo ve el encargado; no se mostrará
-                públicamente.
+                Tu código solo lo ve el encargado; no se mostrará públicamente.
               </p>
               {errors.studentId && (
                 <p className="mt-1 text-sm text-destructive">
@@ -243,128 +255,124 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
               )}
             </div>
 
+            {/* intereses */}
             <div className="border-t pt-6">
               <h3 className="mb-1 text-lg font-semibold text-foreground">
-                Pre-registrar libros (opcional - máximo 2)
+                Libros del catálogo que te interesan (máximo 2)
               </h3>
               <p className="mb-4 text-sm text-muted-foreground">
-                Este registro es preliminar: los libros se revisan en la mesa y
-                solo los aprobados entran al intercambio.
+                Elige libros de la sección &quot;Libros disponibles&quot;. Esto
+                nos ayuda a ver qué títulos generan más demanda.
               </p>
 
-              {formData.books.map((book, index) => (
-                <div
-                  key={index}
-                  className="mb-6 rounded-lg border bg-accent/50 p-4"
-                >
-                  <div className="mb-3 flex items-center justify-between">
-                    <h4 className="font-medium text-accent-foreground">
-                      Libro {index + 1}
-                    </h4>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeBook(index)}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      Eliminar
-                    </Button>
-                  </div>
+              {formData.books.map((book, index) => {
+                const selectedBase = availableBooks.find(
+                  (b) => b.id === book.bookId
+                );
 
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor={`genre${index}`}>Género *</Label>
-                      <Select
-                        value={book.genre}
-                        onValueChange={(value) =>
-                          updateBook(index, "genre", value)
-                        }
+                return (
+                  <div
+                    key={index}
+                    className="mb-6 rounded-lg border bg-accent/50 p-4"
+                  >
+                    <div className="mb-3 flex items-center justify-between">
+                      <h4 className="font-medium text-accent-foreground">
+                        Libro {index + 1}
+                      </h4>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeBook(index)}
+                        className="text-destructive hover:text-destructive"
                       >
-                        <SelectTrigger
-                          className={
-                            errors[`book${index}genre`]
-                              ? "border-destructive"
-                              : ""
+                        Eliminar
+                      </Button>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Libro disponible *</Label>
+                        <Select
+                          value={book.bookId}
+                          onValueChange={(value) =>
+                            updateBook(index, "bookId", value)
                           }
                         >
-                          <SelectValue placeholder="Selecciona un género" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {genres.map((genre) => (
-                            <SelectItem key={genre} value={genre}>
-                              {genre}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {errors[`book${index}genre`] && (
-                        <p className="mt-1 text-sm text-destructive">
-                          {errors[`book${index}genre`]}
-                        </p>
-                      )}
-                    </div>
+                          <SelectTrigger
+                            className={
+                              errors[`book${index}bookId`]
+                                ? "border-destructive"
+                                : ""
+                            }
+                          >
+                            <SelectValue
+                              placeholder={
+                                availableBooks.length === 0
+                                  ? "No hay libros en el catálogo aún"
+                                  : "Selecciona un libro del catálogo"
+                              }
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableBooks.map((b) => (
+                              <SelectItem key={b.id} value={b.id || ""}>
+                                {b.titulo} — {b.genero}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {errors[`book${index}bookId`] && (
+                          <p className="mt-1 text-sm text-destructive">
+                            {errors[`book${index}bookId`]}
+                          </p>
+                        )}
+                        {selectedBase && (
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            Género: {selectedBase.genero}
+                          </p>
+                        )}
+                      </div>
 
-                    <div>
-                      <Label htmlFor={`title${index}`}>Título *</Label>
-                      <Input
-                        id={`title${index}`}
-                        type="text"
-                        value={book.title}
-                        onChange={(e) =>
-                          updateBook(index, "title", e.target.value)
-                        }
-                        className={
-                          errors[`book${index}title`]
-                            ? "border-destructive"
-                            : ""
-                        }
-                        placeholder="Nombre del libro"
-                      />
-                      {errors[`book${index}title`] && (
-                        <p className="mt-1 text-sm text-destructive">
-                          {errors[`book${index}title`]}
-                        </p>
-                      )}
-                    </div>
-
-                    <div>
-                      <Label htmlFor={`condition${index}`}>Estado *</Label>
-                      <Select
-                        value={book.condition}
-                        onValueChange={(value) =>
-                          updateBook(index, "condition", value)
-                        }
-                      >
-                        <SelectTrigger
-                          className={
-                            errors[`book${index}condition`]
-                              ? "border-destructive"
-                              : ""
+                      <div>
+                        <Label>Estado preferido *</Label>
+                        <Select
+                          value={book.condition}
+                          onValueChange={(value) =>
+                            updateBook(index, "condition", value)
                           }
                         >
-                          <SelectValue placeholder="Selecciona el estado" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {conditions.map((condition) => (
-                            <SelectItem key={condition} value={condition}>
-                              {condition}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Se confirmará en el stand.
-                      </p>
-                      {errors[`book${index}condition`] && (
-                        <p className="mt-1 text-sm text-destructive">
-                          {errors[`book${index}condition`]}
+                          <SelectTrigger
+                            className={
+                              errors[`book${index}condition`]
+                                ? "border-destructive"
+                                : ""
+                            }
+                          >
+                            <SelectValue placeholder="Selecciona el estado" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {conditions.map((condition) => (
+                              <SelectItem key={condition} value={condition}>
+                                {condition}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Solo indica tu preferencia; en el intercambio real
+                          puede variar un poco.
                         </p>
-                      )}
+                        {errors[`book${index}condition`] && (
+                          <p className="mt-1 text-sm text-destructive">
+                            {errors[`book${index}condition`]}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
 
               {formData.books.length < 2 && (
                 <Button
@@ -372,8 +380,9 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
                   variant="outline"
                   onClick={addBook}
                   className="w-full"
+                  disabled={availableBooks.length === 0}
                 >
-                  + Añadir libro
+                  + Añadir libro de interés
                 </Button>
               )}
             </div>
@@ -384,7 +393,7 @@ export const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
               size="lg"
               disabled={submitting}
             >
-              {submitting ? "Registrando..." : "Generar Invitación y Registrar"}
+              {submitting ? "Registrando..." : "Generar invitación y registrar"}
             </Button>
           </div>
         </form>
